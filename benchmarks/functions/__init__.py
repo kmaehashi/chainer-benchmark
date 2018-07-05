@@ -57,16 +57,16 @@ class FunctionBenchmark(BenchmarkBase):
                    'that of the output of target function')
             raise TypeError(msg)
 
-    def setup_benchmark(self, function, inputs, grad_outputs=None):
+    def setup_benchmark(self, function, inputs, grad_outputs=None, **kwargs):
         """Performs setup of benchmark for functions.
 
         Call this in `setup` method of your benchmark class.
         Note that this function performs forward computation.
         """
         self.function = function
+        self.kwargs = kwargs
 
         # Prepare for forward.
-
         self.forward_inputs = ([self._convert_to_variable(x) for x in inputs])
 
         # Prepare for backward.
@@ -87,7 +87,7 @@ class FunctionBenchmark(BenchmarkBase):
 
     def forward(self):
         """Runs forward computation."""
-        return self.function(*self.forward_inputs)
+        return self.function(*self.forward_inputs, **self.kwargs)
 
     def backward(self):
         """Runs backward computation."""
