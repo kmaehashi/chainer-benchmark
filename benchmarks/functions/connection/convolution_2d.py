@@ -6,9 +6,12 @@ from benchmarks.utils import parameterize
 
 
 @backends('gpu', 'gpu-cudnn', 'cpu', 'cpu-ideep')
-@parameterize([('batches', [1, 16])])
+@parameterize([
+    ('batches', [1, 16]),
+    ('groups', [1, 2]),
+])
 class Convolution2D(FunctionBenchmark):
-    def setup(self, batches):
+    def setup(self, batches, groups):
         xp = self.xp
 
         # Prepare test data.
@@ -17,7 +20,7 @@ class Convolution2D(FunctionBenchmark):
         ih, iw = (128, 128)
         kh, kw = (12, 12)
         x = xp.random.uniform(
-            -1, 1, (batches, in_channels, ih, iw)).astype(xp.float32)
+            -1, 1, (batches, groups * in_channels, ih, iw)).astype(xp.float32)
         W = xp.random.normal(
             0, xp.sqrt(1. / (kh * kw * in_channels)),
             (out_channels, in_channels, kh, kw)).astype(xp.float32)
@@ -26,10 +29,10 @@ class Convolution2D(FunctionBenchmark):
             -1, 1, (batches, out_channels, 117, 117)).astype(xp.float32)
 
         # Setup benchmark.
-        self.setup_benchmark(F.convolution_2d, (x, W, b), gy)
+        self.setup_benchmark(F.convolution_2d, (x, W, b), gy, groups=groups)
 
-    def time_forward(self, batches):
+    def time_forward(self, *_):
         self.forward()
 
-    def time_backward(self, batches):
+    def time_backward(self, *_):
         self.backward()
